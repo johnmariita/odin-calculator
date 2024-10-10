@@ -12,8 +12,9 @@ const regComplete = /^(\-?\d+)(\+|\-|\/|\*)(\d+)$/; //string thatt matches a com
 
 //Regex for float operations
 const freg1 = /^\-?\d+\.?\d+$/;
-const freg2 = /^\-?\d+\.?(\+|\-|\/|\*)$/;
-const fregComplete = /^(\-?\d+\.?)(\+|\-|\/|\*)(\d+\.?)$/;
+const freg2 = /^\-?\d+\.?\d+(\+|\-|\/|\*)$/;
+const fregTrailingPoint = /^(\-?\d+\.?\d+)(\+|\-|\/|\*)(\d+\.?)$/
+const fregComplete = /^(\-?\d+\.?\d*)(\+|\-|\/|\*)(\d+\.?\d*)$/;
 
 let currentEntry = document.querySelector('.container .calculator .display .currentEntry');
 let prevRes = document.querySelector('.container .calculator .display .prevResult');
@@ -34,7 +35,17 @@ const operationsObj = {
 const btns = document.querySelectorAll('.container .calculator .buttons .number');
 const clearAll = document.querySelector('.container .calculator .buttons .clearButtons .ca');
 const clearEntry = document.querySelector('.container .calculator .buttons .clearButtons .ce');
-const op = document.querySelectorAll('.container .calculator .buttons .operation')
+const op = document.querySelectorAll('.container .calculator .buttons .operation');
+const point = document.querySelector('.container .calculator .buttons .point');
+const eq = document.querySelector('.container .calculator .buttons .equal');
+
+point.addEventListener('click', (e) => {
+    if (currentEntry.innerText.length === 0 || Object.keys(operationsObj).includes(currentEntry.innerText[currentEntry.innerText.length - 1])) {
+        currentEntry.innerText += 0 + '.'
+    }
+    else if(reg1.test(currentEntry.innerText)) currentEntry.innerText += '.';
+    else if(regComplete.test(currentEntry.innerText) || fregTrailingPoint.test(currentEntry.innerText)) currentEntry.innerText += '.';
+})
 
 
 clearAll.addEventListener('click', () => {
@@ -47,7 +58,7 @@ clearEntry.addEventListener('click', () => {
         text.splice(text.length - 1, 1);
         currentEntry.innerText = text.join('');
     }
-})
+});
 for (let i = 0; i < btns.length; i++) {
     btns[i].addEventListener('click', (e) => {
         currentEntry.innerText += e.target.value;
@@ -58,17 +69,18 @@ for (let i = 0; i < op.length; i++) {
         if(e.target.value == '-') {
             if (currentEntry.innerText.length === 0) currentEntry.innerText = e.target.value;
         }
-        if (reg1.test(currentEntry.innerText)) currentEntry.innerText += e.target.value;
+        if (reg1.test(currentEntry.innerText) || freg1.test(currentEntry.innerText)) currentEntry.innerText += e.target.value;
         if (reg2.test(currentEntry.innerText)) {
             let text = [...currentEntry.innerText];
             text.splice(text.length - 1, 1);
             text.push(e.target.value);
             currentEntry.innerText = text.join('');
         }
-        if (regComplete.test(currentEntry.innerText)) {
+        if (regComplete.test(currentEntry.innerText) || fregComplete.test(currentEntry.innerText)) {
             prevResult = currentEntry.innerText;
             clickedOp = e.target.value;
-            result = getResult(currentEntry.innerText, regComplete);
+            if (regComplete.test(currentEntry.innerText)) result = getResult(currentEntry.innerText, regComplete);
+            else result = getResult(currentEntry.innerText, fregComplete);
             prevRes.innerText = prevResult;
             currentEntry.innerText = result;
             currentEntry.innerText += e.target.value;
@@ -77,8 +89,16 @@ for (let i = 0; i < op.length; i++) {
 }
 function getResult(str, regex) {
     const matches = [...str.match(regex)];
-    lhs = parseInt(matches[1]);
+    if (matches[1].split('').includes('.'))  {
+        lhs = parseFloat(matches[1])
+        console.log(lhs);
+    }
+    else lhs = parseInt(matches[1]);
     operand = matches[2];
-    rhs = parseInt(matches[3]);
-    return operationsObj[operand](lhs, rhs); 
+    if (matches[3].split('').includes('.'))  {
+        rhs = parseFloat(matches[3])
+        console.log(rhs)
+    }
+    else rhs = parseInt(matches[3]);
+    return Math.round(operationsObj[operand](lhs, rhs) * 10000) / 10000; //handles 0.1 + 0.2 due to floating point arithmetic
 }
