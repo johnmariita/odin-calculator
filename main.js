@@ -54,6 +54,7 @@ clearAll.addEventListener('click', () => {
 });
 clearEntry.addEventListener('click', () => {
     if (currentEntry.innerText.length > 0) {
+        if (currentEntry.innerText.length < 15) currentEntry.style.fontSize = "2em"
         let text = [...currentEntry.innerText];
         text.splice(text.length - 1, 1);
         currentEntry.innerText = text.join('');
@@ -62,10 +63,18 @@ clearEntry.addEventListener('click', () => {
 for (let i = 0; i < btns.length; i++) {
     btns[i].addEventListener('click', (e) => {
         currentEntry.innerText += e.target.value;
+        if (currentEntry.innerText.length > 15) {
+            currentEntry.style.fontSize = "1.5em";
+        }
+        if (currentEntry.innerText.length < 15) currentEntry.style.fontSize = "2em";
     })
 }
 for (let i = 0; i < op.length; i++) {
     op[i].addEventListener('click', (e) => {
+        if (currentEntry.innerText.length % 15 === 0) {
+            console.log('15');
+            currentEntry.style.fontsize *= 3/4
+        };
         if(e.target.value == '-') {
             if (currentEntry.innerText.length === 0) currentEntry.innerText = e.target.value;
         }
@@ -84,10 +93,14 @@ for (let i = 0; i < op.length; i++) {
             prevRes.innerText = prevResult;
             currentEntry.innerText = result;
             currentEntry.innerText += e.target.value;
+            if (currentEntry.innerText.length > 15) {
+                currentEntry.style.fontSize = "1.5em";
+            }
         }
     })
 }
 function getResult(str, regex) {
+    let answer;
     const matches = [...str.match(regex)];
     if (matches[1].split('').includes('.'))  {
         lhs = parseFloat(matches[1])
@@ -100,5 +113,7 @@ function getResult(str, regex) {
         console.log(rhs)
     }
     else rhs = parseInt(matches[3]);
-    return Math.round(operationsObj[operand](lhs, rhs) * 10000) / 10000; //handles 0.1 + 0.2 due to floating point arithmetic
+    answer = Math.round(operationsObj[operand](lhs, rhs) * 10000) / 10000; //handles 0.1 + 0.2 due to floating point arithmetic
+    if (isNaN(answer)) return "Can't do that, can ya?";
+    else return answer;
 }
