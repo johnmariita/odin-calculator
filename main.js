@@ -62,7 +62,10 @@ clearEntry.addEventListener('click', () => {
 });
 for (let i = 0; i < btns.length; i++) {
     btns[i].addEventListener('click', (e) => {
-        currentEntry.innerText += e.target.value;
+        if ((regComplete.test(prevRes.innerText) || fregComplete.test(prevRes.innerText)) && (reg1.test(currentEntry.innerText ||freg1.test(currentEntry.innerText)))) {
+            currentEntry.innerText = e.target.value;
+            prevRes.innerText = '';
+        } else currentEntry.innerText += e.target.value;
         if (currentEntry.innerText.length > 15) {
             currentEntry.style.fontSize = "1.5em";
         }
